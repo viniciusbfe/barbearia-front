@@ -7,19 +7,29 @@ function ListarClientes() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    fetch('${import.meta.env.VITE_API_URL/clientes', {
-      headers: { 'Authorization': `Bearer ${token}` }
+
+    fetch(`${import.meta.env.VITE_API_URL}/clientes`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
       .then(res => res.json())
       .then(data => setClientes(data))
+      .catch(err => console.error('Erro ao buscar clientes:', err))
   }, [])
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem('token')
-    const response = await fetch('${import.meta.env.VITE_API_URL/clientes/${id}', {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/clientes/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    )
 
     if (response.ok) {
       setClientes(clientes.filter(c => c.id !== id))
@@ -36,6 +46,7 @@ function ListarClientes() {
   return (
     <div>
       <h3 className="text-xl font-bold mb-4">Clientes</h3>
+
       <table className="w-full text-left">
         <thead>
           <tr className="text-gray-400 border-b border-gray-700">
@@ -46,8 +57,9 @@ function ListarClientes() {
             <th className="pb-3"></th>
           </tr>
         </thead>
+
         <tbody>
-          {itensPagina.map(c => (
+          {itensPagina.map((c) => (
             <tr key={c.id} className="border-b border-gray-800">
               <td className="py-3">{c.id}</td>
               <td className="py-3">{c.nome}</td>
@@ -74,9 +86,11 @@ function ListarClientes() {
         >
           Anterior
         </button>
+
         <span className="text-gray-400 text-sm">
           Página {paginaAtual} de {totalPaginas}
         </span>
+
         <button
           onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))}
           disabled={paginaAtual === totalPaginas}
