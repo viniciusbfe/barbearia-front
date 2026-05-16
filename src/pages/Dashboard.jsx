@@ -7,7 +7,7 @@ import ListarAgendamentos from '../components/ListarAgendamentos'
 import CriarEspecialidade from '../components/CriarEspecialidade'
 import CriarServico from '../components/CriarServico'
 import CriarCliente from '../components/CriarCliente'
-import CriarBarbeiro from '../components/CriarBarbeiro'
+import CriarBarbeiro from '../components/CriarBarbeiros'
 
 function Dashboard() {
   const [paginaAtiva, setPaginaAtiva] = useState('agendamentos')
