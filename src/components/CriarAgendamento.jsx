@@ -5,6 +5,8 @@ function CriarAgendamento({ onFechar, onCriado }) {
   const [barbeiros, setBarbeiros] = useState([])
   const [servicos, setServicos] = useState([])
   const [slots, setSlots] = useState([])
+  const [diasTrabalhados, setDiasTrabalhados] = useState([])
+
 
   const [clienteId, setClienteId] = useState('')
   const [barbeiroId, setBarbeiroId] = useState('')
@@ -129,6 +131,16 @@ function CriarAgendamento({ onFechar, onCriado }) {
             setBarbeiroId(e.target.value)
             setSlots([])
             setHorario('')
+            setData('')
+
+            if (e.target.value) {
+              const token = localStorage.getItem('token')
+              fetch(`${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${e.target.value}/dias`, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+                .then(res => res.json())
+                .then(dias => setDiasTrabalhados(dias))
+            }
           }}
           className="w-full p-3 mb-4 rounded-lg bg-gray-700 text-white outline-none cursor-pointer"
         >
@@ -144,11 +156,10 @@ function CriarAgendamento({ onFechar, onCriado }) {
             <button
               key={s.id}
               onClick={() => toggleServico(s.id)}
-              className={`px-3 py-1 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-                servicosSelecionados.includes(s.id)
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
+              className={`px-3 py-1 rounded-lg text-sm font-medium cursor-pointer transition-colors ${servicosSelecionados.includes(s.id)
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
             >
               {s.nome}
             </button>
@@ -160,7 +171,16 @@ function CriarAgendamento({ onFechar, onCriado }) {
           <input
             type="date"
             value={data}
+             min={new Date().toISOString().split('T')[0]}
             onChange={(e) => {
+              const diasSemana = ['DOMINGO', 'SEGUNDA_FEIRA', 'TERCA_FEIRA', 'QUARTA_FEIRA', 'QUINTA_FEIRA', 'SEXTA_FEIRA', 'SABADO']
+              const diaSemana = diasSemana[new Date(e.target.value + 'T12:00:00').getDay()]
+
+              if (!diasTrabalhados.includes(diaSemana)) {
+                alert('Barbeiro não trabalha nesse dia!')
+                return
+              }
+
               setData(e.target.value)
               setSlots([])
               setHorario('')
@@ -184,11 +204,10 @@ function CriarAgendamento({ onFechar, onCriado }) {
                 <button
                   key={slot}
                   onClick={() => setHorario(slot)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-                    horario === slot
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium cursor-pointer transition-colors ${horario === slot
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
                 >
                   {slot.substring(0, 5)}
                 </button>

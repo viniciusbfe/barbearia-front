@@ -1,28 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+
+const DIAS = [
+  { id: 'SEGUNDA_FEIRA', label: 'Segunda' },
+  { id: 'TERCA_FEIRA', label: 'Terça' },
+  { id: 'QUARTA_FEIRA', label: 'Quarta' },
+  { id: 'QUINTA_FEIRA', label: 'Quinta' },
+  { id: 'SEXTA_FEIRA', label: 'Sexta' },
+  { id: 'SABADO', label: 'Sábado' },
+  { id: 'DOMINGO', label: 'Domingo' },
+]
 
 function CriarBarbeiro() {
   const [nome, setNome] = useState('')
-  const [especialidades, setEspecialidades] = useState([])
-  const [especialidadesSelecionadas, setEspecialidadesSelecionadas] = useState([])
+  const [diasSelecionados, setDiasSelecionados] = useState({})
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-
-    fetch(`${import.meta.env.VITE_API_URL}/especialidades`, {
-      headers: { Authorization: `Bearer ${token}` }
+  const toggleDia = (diaId) => {
+    setDiasSelecionados(prev => {
+      if (prev[diaId]) {
+        const novo = { ...prev }
+        delete novo[diaId]
+        return novo
+      }
+      return { ...prev, [diaId]: { inicio: '09:00', fim: '18:00' } }
     })
-      .then(res => res.json())
-      .then(data => setEspecialidades(data))
-  }, [])
+  }
 
-  const toggleEspecialidade = (id) => {
-    if (especialidadesSelecionadas.includes(id)) {
-      setEspecialidadesSelecionadas(
-        especialidadesSelecionadas.filter(e => e !== id)
-      )
-    } else {
-      setEspecialidadesSelecionadas([...especialidadesSelecionadas, id])
-    }
+  const atualizarHorario = (diaId, campo, valor) => {
+    setDiasSelecionados(prev => ({
+      ...prev,
+      [diaId]: { ...prev[diaId], [campo]: valor }
+    }))
   }
 
   const handleSubmit = async () => {
@@ -33,33 +40,46 @@ function CriarBarbeiro() {
 
     const token = localStorage.getItem('token')
 
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/barbeiros`,
-      {
+    const barbeiroResponse = await fetch(`${import.meta.env.VITE_API_URL}/barbeiros`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ nome, especialidades: [] })
+    })
+
+    if (!barbeiroResponse.ok) {
+      const erro = await barbeiroResponse.json()
+      alert(erro.mensagem || 'Erro ao criar barbeiro!')
+      return
+    }
+
+    const barbeiro = await barbeiroResponse.json()
+
+    for (const [diaId, horario] of Object.entries(diasSelecionados)) {
+      await fetch(`${import.meta.env.VITE_API_URL}/disponibilidades`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          nome,
-          especialidades: especialidadesSelecionadas
+          barbeiroId: barbeiro.id,
+          diaSemana: diaId,
+          horaInicio: horario.inicio,
+          horaFim: horario.fim
         })
-      }
-    )
-
-    if (response.ok) {
-      alert('Barbeiro criado com sucesso!')
-      setNome('')
-      setEspecialidadesSelecionadas([])
-    } else {
-      const erro = await response.json()
-      alert(erro.mensagem || 'Erro ao criar barbeiro')
+      })
     }
+
+    alert('Barbeiro criado com sucesso!')
+    setNome('')
+    setDiasSelecionados({})
   }
 
   return (
-    <div className="max-w-md">
+    <div className="max-w-lg">
       <h3 className="text-xl font-bold mb-6">Criar Barbeiro</h3>
 
       <input
@@ -67,24 +87,47 @@ function CriarBarbeiro() {
         placeholder="Nome do barbeiro"
         value={nome}
         onChange={(e) => setNome(e.target.value)}
-        className="w-full p-3 mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
+        className="w-full p-3 mb-6 rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
       />
 
-      <p className="text-gray-400 text-sm mb-2">Especialidades</p>
+      <p className="text-gray-400 text-sm mb-3">Dias de trabalho</p>
+      <div className="flex flex-col gap-3 mb-6">
+        {DIAS.map(dia => (
+          <div key={dia.id}>
+            <button
+              onClick={() => toggleDia(dia.id)}
+              className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                diasSelecionados[dia.id]
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {dia.label}
+            </button>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {especialidades.map(esp => (
-          <button
-            key={esp.id}
-            onClick={() => toggleEspecialidade(esp.id)}
-            className={`px-3 py-1 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-              especialidadesSelecionadas.includes(esp.id)
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            {esp.nome}
-          </button>
+            {diasSelecionados[dia.id] && (
+              <div className="flex gap-3 mt-2 ml-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 text-xs">Início</span>
+                  <input
+                    type="time"
+                    value={diasSelecionados[dia.id].inicio}
+                    onChange={(e) => atualizarHorario(dia.id, 'inicio', e.target.value)}
+                    className="p-2 rounded-lg bg-gray-700 text-white outline-none text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400 text-xs">Fim</span>
+                  <input
+                    type="time"
+                    value={diasSelecionados[dia.id].fim}
+                    onChange={(e) => atualizarHorario(dia.id, 'fim', e.target.value)}
+                    className="p-2 rounded-lg bg-gray-700 text-white outline-none text-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
