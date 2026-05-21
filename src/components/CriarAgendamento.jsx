@@ -42,10 +42,16 @@ function CriarAgendamento({ onFechar, onCriado }) {
       return
     }
 
+    if (servicosSelecionados.length === 0) {
+      alert('Selecione pelo menos um serviço primeiro!')
+      return
+    }
+
     const token = localStorage.getItem('token')
+    const servicosParam = servicosSelecionados.join(',')
 
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${barbeiroId}?data=${data}`,
+      `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${barbeiroId}?data=${data}&servicoIds=${servicosParam}`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -171,7 +177,7 @@ function CriarAgendamento({ onFechar, onCriado }) {
           <input
             type="date"
             value={data}
-             min={new Date().toISOString().split('T')[0]}
+            min={new Date().toISOString().split('T')[0]}
             onChange={(e) => {
               const diasSemana = ['DOMINGO', 'SEGUNDA_FEIRA', 'TERCA_FEIRA', 'QUARTA_FEIRA', 'QUINTA_FEIRA', 'SEXTA_FEIRA', 'SABADO']
               const diaSemana = diasSemana[new Date(e.target.value + 'T12:00:00').getDay()]
