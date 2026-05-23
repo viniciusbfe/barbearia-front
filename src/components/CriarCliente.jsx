@@ -8,7 +8,7 @@ function CriarCliente() {
 
   const handleSubmit = async () => {
     if (!nome.trim() || !telefone.trim() || !email.trim()) {
-      toast.error('Preencha todos os campos!')
+      toast.warning('Preencha todos os campos!')
       return
     }
 

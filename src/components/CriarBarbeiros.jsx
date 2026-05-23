@@ -35,7 +35,7 @@ function CriarBarbeiro() {
 
   const handleSubmit = async () => {
     if (!nome.trim()) {
-      toast.error('Nome é obrigatório!')
+      toast.warning('Nome é obrigatório!')
       return
     }
 

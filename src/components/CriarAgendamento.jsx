@@ -39,12 +39,12 @@ function CriarAgendamento({ onFechar, onCriado }) {
 
   const buscarSlots = async () => {
     if (!barbeiroId || !data) {
-      toast.error('Selecione um barbeiro e uma data primeiro!')
+      toast.warning('Selecione um barbeiro e uma data primeiro!')
       return
     }
 
     if (servicosSelecionados.length === 0) {
-      toast.error('Selecione pelo menos um serviço primeiro!')
+      toast.warning('Selecione pelo menos um serviço primeiro!')
       return
     }
 
@@ -77,7 +77,7 @@ function CriarAgendamento({ onFechar, onCriado }) {
 
   const handleSubmit = async () => {
     if (!clienteId || !barbeiroId || !data || !horario || servicosSelecionados.length === 0) {
-      toast.error('Preencha todos os campos!')
+      toast.warning('Preencha todos os campos!')
       return
     }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 function Login() {
     const [email, setEmail] = useState('')
@@ -15,7 +16,7 @@ function Login() {
             })
 
             if (!response.ok) {
-                alert('Email ou senha incorretos!')
+                toast.warning('Email ou senha incorretos!')
                 return
             }
 
@@ -23,7 +24,7 @@ function Login() {
             localStorage.setItem('token', token)
             navigate('/dashboard')
         } catch (error) {
-            alert('Erro ao fazer login!')
+            toast.error('Erro ao fazer login!')
         }
     }
 

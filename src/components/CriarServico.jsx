@@ -8,7 +8,7 @@ function CriarServico() {
 
     const handleSubmit = async () => {
         if (!nome.trim() || !duracao || !preco) {
-            toast.error('Preencha todos os campos!')
+            toast.warning('Preencha todos os campos!')
             return
         }
 

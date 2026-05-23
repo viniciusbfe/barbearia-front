@@ -87,7 +87,7 @@ function ListarAgendamentos() {
     const body = {}
     if (editServicosSelecionados.length > 0) body.servicoIds = editServicosSelecionados
     if (editData && editHorario) body.dataHora = `${editData}T${editHorario}`
-    else if (editData && !editHorario) { toast.error('Selecione um horário!'); return }
+    else if (editData && !editHorario) { toast.warning('Selecione um horário!'); return }
 
     const response = await fetch(`${import.meta.env.VITE_API_URL}/agendamentos/${agendamento.id}`, {
       method: 'PATCH',
