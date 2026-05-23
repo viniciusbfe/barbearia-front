@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 function CriarCliente() {
   const [nome, setNome] = useState('')
@@ -7,7 +8,7 @@ function CriarCliente() {
 
   const handleSubmit = async () => {
     if (!nome.trim() || !telefone.trim() || !email.trim()) {
-      alert('Preencha todos os campos!')
+      toast.error('Preencha todos os campos!')
       return
     }
 
@@ -26,13 +27,13 @@ function CriarCliente() {
     )
 
     if (response.ok) {
-      alert('Cliente criado com sucesso!')
+      toast.success('Cliente criado com sucesso!')
       setNome('')
       setTelefone('')
       setEmail('')
     } else {
       const erro = await response.json()
-      alert(erro.mensagem || 'Erro ao criar cliente')
+      toast.error(erro.mensagem || 'Erro ao criar cliente')
     }
   }
 

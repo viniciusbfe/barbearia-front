@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 function CriarAgendamento({ onFechar, onCriado }) {
   const [clientes, setClientes] = useState([])
@@ -38,12 +39,12 @@ function CriarAgendamento({ onFechar, onCriado }) {
 
   const buscarSlots = async () => {
     if (!barbeiroId || !data) {
-      alert('Selecione um barbeiro e uma data primeiro!')
+      toast.error('Selecione um barbeiro e uma data primeiro!')
       return
     }
 
     if (servicosSelecionados.length === 0) {
-      alert('Selecione pelo menos um serviço primeiro!')
+      toast.error('Selecione pelo menos um serviço primeiro!')
       return
     }
 
@@ -62,7 +63,7 @@ function CriarAgendamento({ onFechar, onCriado }) {
       setSlots(dados)
     } else {
       setSlots([])
-      alert('Barbeiro não trabalha nesse dia!')
+      toast.error('Barbeiro não trabalha nesse dia!')
     }
   }
 
@@ -76,7 +77,7 @@ function CriarAgendamento({ onFechar, onCriado }) {
 
   const handleSubmit = async () => {
     if (!clienteId || !barbeiroId || !data || !horario || servicosSelecionados.length === 0) {
-      alert('Preencha todos os campos!')
+      toast.error('Preencha todos os campos!')
       return
     }
 
@@ -101,12 +102,12 @@ function CriarAgendamento({ onFechar, onCriado }) {
     )
 
     if (response.ok) {
-      alert('Agendamento criado com sucesso!')
+      toast.success('Agendamento criado com sucesso!')
       onCriado()
       onFechar()
     } else {
       const erro = await response.json()
-      alert(erro.mensagem || 'Erro ao criar agendamento')
+      toast.error(erro.mensagem || 'Erro ao criar agendamento')
     }
   }
 
@@ -183,7 +184,7 @@ function CriarAgendamento({ onFechar, onCriado }) {
               const diaSemana = diasSemana[new Date(e.target.value + 'T12:00:00').getDay()]
 
               if (!diasTrabalhados.includes(diaSemana)) {
-                alert('Barbeiro não trabalha nesse dia!')
+                toast.error('Barbeiro não trabalha nesse dia!')
                 return
               }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 function CriarEspecialidade() {
     const [nome, setNome] = useState('')
@@ -16,11 +17,11 @@ function CriarEspecialidade() {
         })
 
         if (response.ok) {
-            alert('Especialidade criada com sucesso!')
+            toast.success('Especialidade criada com sucesso!')
             setNome('')
         } else {
             const erro = await response.json()
-            alert(erro.mensagem)
+            toast.error(erro.mensagem)
         }
     }
 

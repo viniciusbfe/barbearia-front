@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import CriarAgendamento from './CriarAgendamento.jsx'
+import { toast } from 'sonner'
 
 function ListarAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([])
@@ -46,7 +47,7 @@ function ListarAgendamentos() {
     if (response.ok) {
       setAgendamentos(agendamentos.filter(a => a.id !== id))
     } else {
-      alert('Erro ao excluir agendamento!')
+      toast.error('Erro ao excluir agendamento!')
     }
   }
 
@@ -69,7 +70,7 @@ function ListarAgendamentos() {
       setEditSlots(await response.json())
     } else {
       setEditSlots([])
-      alert('Barbeiro não trabalha nesse dia!')
+      toast.error('Barbeiro não trabalha nesse dia!')
     }
   }
 
@@ -86,7 +87,7 @@ function ListarAgendamentos() {
     const body = {}
     if (editServicosSelecionados.length > 0) body.servicoIds = editServicosSelecionados
     if (editData && editHorario) body.dataHora = `${editData}T${editHorario}`
-    else if (editData && !editHorario) { alert('Selecione um horário!'); return }
+    else if (editData && !editHorario) { toast.error('Selecione um horário!'); return }
 
     const response = await fetch(`${import.meta.env.VITE_API_URL}/agendamentos/${agendamento.id}`, {
       method: 'PATCH',
@@ -94,7 +95,7 @@ function ListarAgendamentos() {
       body: JSON.stringify(body)
     })
     if (response.ok) { buscarAgendamentos(); setEditandoId(null) }
-    else { const erro = await response.json(); alert(erro.mensagem || 'Erro ao editar!') }
+    else { const erro = await response.json(); toast.error(erro.mensagem || 'Erro ao editar!') }
   }
 
   const EdicaoForm = ({ agendamento }) => (

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 function CriarServico() {
     const [nome, setNome] = useState('')
@@ -7,7 +8,7 @@ function CriarServico() {
 
     const handleSubmit = async () => {
         if (!nome.trim() || !duracao || !preco) {
-            alert('Preencha todos os campos!')
+            toast.error('Preencha todos os campos!')
             return
         }
 
@@ -28,13 +29,13 @@ function CriarServico() {
         })
 
         if (response.ok) {
-            alert('Serviço criado com sucesso!')
+            toast.success('Serviço criado com sucesso!')
             setNome('')
             setDuracao('')
             setPreco('')
         } else {
             const erro = await response.json()
-            alert(erro.mensagem)
+            toast.error(erro.mensagem)
         }
     }
 

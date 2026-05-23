@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 function ListarClientes() {
   const [clientes, setClientes] = useState([])
@@ -31,7 +32,7 @@ function ListarClientes() {
       setClientes(clientes.filter(c => c.id !== id))
     } else {
       const erro = await response.json()
-      alert(erro.mensagem)
+      toast.error(erro.mensagem)
     }
   }
 

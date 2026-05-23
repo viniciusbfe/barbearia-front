@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 function ListarBarbeiros() {
   const [barbeiros, setBarbeiros] = useState([])
@@ -40,7 +41,7 @@ function ListarBarbeiros() {
       setBarbeiros(barbeiros.filter(b => b.id !== id))
     } else {
       const erro = await response.json()
-      alert(erro.mensagem)
+      toast.error(erro.mensagem)
     }
   }
 
@@ -70,7 +71,7 @@ function ListarBarbeiros() {
       setEditandoId(null)
     } else {
       const erro = await response.json()
-      alert(erro.mensagem)
+      toast.error(erro.mensagem)
     }
   }
 

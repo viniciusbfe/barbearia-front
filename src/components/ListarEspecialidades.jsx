@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 function ListarEspecialidades() {
   const [especialidades, setEspecialidades] = useState([])
@@ -31,7 +32,7 @@ function ListarEspecialidades() {
       setEspecialidades(especialidades.filter(esp => esp.id !== id))
     } else {
       const erro = await response.json()
-      alert(erro.mensagem)
+      toast.error(erro.mensagem)
     }
   }
 

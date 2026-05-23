@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 function ListarServicos() {
   const [servicos, setServicos] = useState([])
@@ -48,7 +49,7 @@ function ListarServicos() {
       setServicos(servicos.filter(s => s.id !== id))
     } else {
       const erro = await response.json()
-      alert(erro.mensagem)
+      toast.error(erro.mensagem)
     }
   }
 

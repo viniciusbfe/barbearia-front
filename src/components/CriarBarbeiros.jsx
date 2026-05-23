@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 const DIAS = [
   { id: 'SEGUNDA_FEIRA', label: 'Segunda' },
@@ -34,7 +35,7 @@ function CriarBarbeiro() {
 
   const handleSubmit = async () => {
     if (!nome.trim()) {
-      alert('Nome é obrigatório!')
+      toast.error('Nome é obrigatório!')
       return
     }
 
@@ -51,7 +52,7 @@ function CriarBarbeiro() {
 
     if (!barbeiroResponse.ok) {
       const erro = await barbeiroResponse.json()
-      alert(erro.mensagem || 'Erro ao criar barbeiro!')
+      toast.error(erro.mensagem || 'Erro ao criar barbeiro!')
       return
     }
 
@@ -73,7 +74,7 @@ function CriarBarbeiro() {
       })
     }
 
-    alert('Barbeiro criado com sucesso!')
+    toast.success('Barbeiro criado com sucesso!')
     setNome('')
     setDiasSelecionados({})
   }
