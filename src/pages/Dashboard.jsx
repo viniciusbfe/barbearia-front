@@ -287,7 +287,7 @@ function Dashboard() {
           }`}
         >
 
-          <div className="bg-gray-900/70 border border-gray-800 rounded-3xl p-6 shadow-2xl backdrop-blur-sm">
+          <div className="w-full p-1">
 
             {paginaAtiva === 'agendamentos' &&
               <ListarAgendamentos />}
