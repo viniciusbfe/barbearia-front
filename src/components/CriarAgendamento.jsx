@@ -51,19 +51,29 @@ function CriarAgendamento({ onFechar, onCriado, agendamento }) {
 
     if (!agendamento) return
 
+    console.log('agendamento:', agendamento) // remove depois de confirmar
+
     setClienteId(String(agendamento.cliente.id))
     setBarbeiroId(String(agendamento.barbeiro.id))
     setServicosSelecionados(
-      agendamento.servicos.map(s => s.id)
-    )
-    setData(new Date(agendamento.dataHora))
-    setHorario(
-      new Date(agendamento.dataHora)
-        .toTimeString()
-        .substring(0, 8) // "HH:mm:ss"
+      agendamento.servicos?.map(s => s.id) ?? []
     )
 
-    // Busca os dias que o barbeiro trabalha
+    // 👇 Garante parse correto independente do formato da string
+    const dataHoraStr = agendamento.dataHora.replace(' ', 'T')
+    const dataObj = new Date(dataHoraStr)
+
+    if (!isNaN(dataObj.getTime())) {
+      setData(dataObj)
+      setHorario(
+        String(dataObj.getHours()).padStart(2, '0') + ':' +
+        String(dataObj.getMinutes()).padStart(2, '0') + ':' +
+        String(dataObj.getSeconds()).padStart(2, '0')
+      )
+    } else {
+      console.error('Data inválida:', agendamento.dataHora)
+    }
+
     const token = localStorage.getItem('token')
 
     fetch(
@@ -249,11 +259,10 @@ function CriarAgendamento({ onFechar, onCriado, agendamento }) {
                 <button
                   key={s.id}
                   onClick={() => toggleServico(s.id)}
-                  className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${
-                    servicosSelecionados.includes(s.id)
+                  className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${servicosSelecionados.includes(s.id)
                       ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-500 text-white shadow-lg'
                       : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   {s.nome}
                 </button>
@@ -311,11 +320,10 @@ function CriarAgendamento({ onFechar, onCriado, agendamento }) {
                   <button
                     key={slot}
                     onClick={() => setHorario(slot)}
-                    className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${
-                      horario === slot
+                    className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${horario === slot
                         ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-500 text-white shadow-lg'
                         : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                    }`}
+                      }`}
                   >
                     {slot.substring(0, 5)}
                   </button>
