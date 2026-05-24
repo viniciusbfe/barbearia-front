@@ -83,13 +83,17 @@ function ListarAgendamentos() {
 
     // filtro data
     if (filtroData) {
-      const dataSelecionada = filtroData.toISOString().split('T')[0]
-
       filtrados = filtrados.filter(a => {
-        const data = parseDataHoraBR(a.dataHora)
-        if (!data) return false
+        if (!a.dataHora) return false
 
-        return data.toISOString().startsWith(dataSelecionada)
+        const data = new Date(a.dataHora)
+        if (isNaN(data.getTime())) return false
+
+        return (
+          data.getFullYear() === filtroData.getFullYear() &&
+          data.getMonth() === filtroData.getMonth() &&
+          data.getDate() === filtroData.getDate()
+        )
       })
     }
 
