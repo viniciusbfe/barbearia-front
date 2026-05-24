@@ -317,26 +317,33 @@ function ListarAgendamentos() {
       )}
 
       {confirmarDelete && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-          <div className="bg-gray-900 p-6 rounded-2xl">
+          <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl p-6">
 
-            <p className="text-white mb-4">
-              Confirmar exclusão?
+            <h3 className="text-xl font-bold text-white mb-2">
+              Excluir agendamento
+            </h3>
+
+            <p className="text-gray-400 mb-6">
+              Tem certeza que deseja excluir este agendamento? Essa ação não pode ser desfeita.
             </p>
 
             <div className="flex gap-3">
 
               <button
-                onClick={() => setConfirmarDelete(false)}
-                className="px-4 py-2 bg-gray-700 text-white rounded-xl"
+                onClick={() => {
+                  setConfirmarDelete(false)
+                  setAgendamentoParaExcluir(null)
+                }}
+                className="flex-1 p-3 rounded-2xl bg-gray-800 text-white hover:bg-gray-700 transition cursor-pointer"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl"
+                className="flex-1 p-3 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition cursor-pointer font-semibold"
               >
                 Excluir
               </button>
