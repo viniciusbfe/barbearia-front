@@ -21,24 +21,21 @@ function ListarAgendamentos() {
 
   const [agendamentoParaEditar, setAgendamentoParaEditar] = useState(null)
 
-  const itensPorPagina = 14
+  const itensPorPagina = 4
 
-  // =========================
-  // 🔥 PARSER DE DATA BR
-  // =========================
-  const parseDataHoraBR = (str) => {
-    if (!str) return null
+  const formatDataHora = (str) => {
+    const date = new Date(str)
 
-    const [date, time] = str.split(' ')
-    if (!date || !time) return null
+    if (isNaN(date)) return 'Data inválida'
 
-    const [day, month, year] = date.split('/')
-    if (!day || !month || !year) return null
+    const dia = String(date.getDate()).padStart(2, '0')
+    const mes = String(date.getMonth() + 1).padStart(2, '0')
+    const ano = String(date.getFullYear()).slice(-2)
 
-    const isoString = `${year}-${month}-${day}T${time}:00`
-    const dateObj = new Date(isoString)
+    const hora = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
 
-    return isNaN(dateObj.getTime()) ? null : dateObj
+    return `${dia}/${mes}/${ano} às ${hora}:${min}`
   }
 
   const formatDataHora = (str) => {

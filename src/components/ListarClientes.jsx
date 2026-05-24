@@ -9,7 +9,7 @@ function ListarClientes() {
   const [confirmarDelete, setConfirmarDelete] = useState(false)
   const [clienteParaExcluir, setClienteParaExcluir] = useState(null)
 
-  const itensPorPagina = 14
+  const itensPorPagina = 4
 
   useEffect(() => {
 

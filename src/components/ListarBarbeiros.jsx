@@ -25,7 +25,7 @@ function ListarBarbeiros() {
     setBarbeiroParaExcluir
   ] = useState(null)
 
-  const itensPorPagina = 14
+  const itensPorPagina = 4
 
   useEffect(() => {
 

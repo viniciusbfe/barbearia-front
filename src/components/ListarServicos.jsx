@@ -14,7 +14,7 @@ function ListarServicos() {
   const [confirmarDelete, setConfirmarDelete] = useState(false)
   const [servicoParaExcluir, setServicoParaExcluir] = useState(null)
 
-  const itensPorPagina = 14
+  const itensPorPagina = 4
 
   useEffect(() => {
 

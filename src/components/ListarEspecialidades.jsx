@@ -9,7 +9,7 @@ function ListarEspecialidades() {
   const [confirmarDelete, setConfirmarDelete] = useState(false)
   const [especialidadeParaExcluir, setEspecialidadeParaExcluir] = useState(null)
 
-  const itensPorPagina = 14
+  const itensPorPagina = 4
 
   useEffect(() => {
 
