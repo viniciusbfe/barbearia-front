@@ -19,24 +19,39 @@ function ListarAgendamentos() {
   const [confirmarDelete, setConfirmarDelete] = useState(false)
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null)
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [agendamentoParaEditar, setAgendamentoParaEditar] = useState(null)
 
   const itensPorPagina = 14
 
-  useEffect(() => {
+  // =========================
+  // 🔥 PARSER DE DATA BR
+  // =========================
+  const parseDataHoraBR = (str) => {
+    if (!str) return null
 
-    const handleResize = () =>
-      setIsMobile(window.innerWidth < 768)
+    const [date, time] = str.split(' ')
+    if (!date || !time) return null
 
-    window.addEventListener('resize', handleResize)
+    const [day, month, year] = date.split('/')
+    if (!day || !month || !year) return null
 
-    return () => window.removeEventListener('resize', handleResize)
+    const isoString = `${year}-${month}-${day}T${time}:00`
+    const dateObj = new Date(isoString)
 
-  }, [])
+    return isNaN(dateObj.getTime()) ? null : dateObj
+  }
 
+  const formatDataHora = (str) => {
+    const date = parseDataHoraBR(str)
+    if (!date) return 'Data inválida'
+
+    return date.toLocaleString('pt-BR')
+  }
+
+  // =========================
+  // BUSCAR AGENDAMENTOS
+  // =========================
   const buscarAgendamentos = () => {
-
     const token = localStorage.getItem('token')
 
     fetch(`${import.meta.env.VITE_API_URL}/agendamentos`, {
@@ -47,11 +62,9 @@ function ListarAgendamentos() {
         setAgendamentos(data)
         setAgendamentosFiltrados(data)
       })
-
   }
 
   useEffect(() => {
-
     buscarAgendamentos()
 
     const token = localStorage.getItem('token')
@@ -64,19 +77,30 @@ function ListarAgendamentos() {
 
   }, [])
 
+  // =========================
+  // FILTROS
+  // =========================
   useEffect(() => {
 
     let filtrados = [...agendamentos]
 
+    // filtro barbeiro
     if (filtroBarbeiro) {
       filtrados = filtrados.filter(
-        a => a.barbeiro.id === Number(filtroBarbeiro)
+        a => a.barbeiro?.id === Number(filtroBarbeiro)
       )
     }
 
+    // filtro data
     if (filtroData) {
-      const dataFormatada = filtroData.toISOString().split('T')[0]
-      filtrados = filtrados.filter(a => a.dataHora.startsWith(dataFormatada))
+      const dataSelecionada = filtroData.toISOString().split('T')[0]
+
+      filtrados = filtrados.filter(a => {
+        const data = parseDataHoraBR(a.dataHora)
+        if (!data) return false
+
+        return data.toISOString().startsWith(dataSelecionada)
+      })
     }
 
     setAgendamentosFiltrados(filtrados)
@@ -89,6 +113,9 @@ function ListarAgendamentos() {
     setFiltroData(null)
   }
 
+  // =========================
+  // DELETE
+  // =========================
   const handleDelete = async () => {
 
     const token = localStorage.getItem('token')
@@ -110,44 +137,53 @@ function ListarAgendamentos() {
 
     setConfirmarDelete(false)
     setAgendamentoParaExcluir(null)
-
   }
 
+  // =========================
+  // PAGINAÇÃO
+  // =========================
   const totalPaginas = Math.ceil(agendamentosFiltrados.length / itensPorPagina)
   const inicio = (paginaAtual - 1) * itensPorPagina
   const itensPagina = agendamentosFiltrados.slice(inicio, inicio + itensPorPagina)
 
+  // =========================
+  // UI
+  // =========================
   return (
-
     <div>
 
+      {/* HEADER */}
       <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
 
         <div>
           <h3 className="text-2xl font-bold text-white">Agendamentos</h3>
-          <p className="text-gray-400 text-sm mt-1">Gerencie os horários da barbearia</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Gerencie os horários da barbearia
+          </p>
         </div>
 
         <button
           onClick={() => setModalAberto(true)}
-          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-semibold hover:opacity-90 transition shadow-lg cursor-pointer"
+          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-semibold hover:opacity-90 transition shadow-lg"
         >
           + Novo Agendamento
         </button>
 
       </div>
 
-      {/* Filtros */}
-      <div className="bg-gray-900 border border-gray-800 rounded-3xl p-5 mb-6 shadow-xl">
+      {/* FILTROS */}
+      <div className="bg-gray-900 border border-gray-800 rounded-3xl p-5 mb-6">
 
         <div className="flex flex-col lg:flex-row gap-4">
 
+          {/* barbeiro */}
           <div className="flex-1">
             <p className="text-sm text-gray-400 mb-2">Filtrar por barbeiro</p>
+
             <select
               value={filtroBarbeiro}
               onChange={(e) => setFiltroBarbeiro(e.target.value)}
-              className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition cursor-pointer"
+              className="w-full p-4 rounded-2xl bg-gray-800 text-white"
             >
               <option value="">Todos os barbeiros</option>
               {barbeiros.map(b => (
@@ -156,131 +192,118 @@ function ListarAgendamentos() {
             </select>
           </div>
 
+          {/* data */}
           <div className="flex-1">
             <p className="text-sm text-gray-400 mb-2">Filtrar por data</p>
+
             <DatePicker
               selected={filtroData}
-              onChange={(date) => setFiltroData(date)}
+              onChange={setFiltroData}
               dateFormat="dd/MM/yyyy"
               locale={ptBR}
               placeholderText="Selecione uma data"
-              calendarClassName="custom-calendar"
-              popperPlacement="bottom-start"
-              fixedHeight
-              className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition"
+              className="w-full p-4 rounded-2xl bg-gray-800 text-white"
             />
           </div>
 
+          {/* limpar */}
           <div className="flex items-end">
             <button
               onClick={limparFiltros}
-              className="w-full lg:w-auto px-5 py-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition cursor-pointer"
+              className="px-5 py-4 rounded-2xl bg-gray-800 text-white"
             >
               Limpar filtros
             </button>
           </div>
 
         </div>
-
       </div>
 
-      {/* Lista */}
+      {/* LISTA */}
       <div className="space-y-4">
 
         {itensPagina.map(a => (
-
           <div
             key={a.id}
-            className="bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-xl"
+            className="bg-gray-900 border border-gray-800 rounded-3xl p-5"
           >
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <h4 className="text-white font-semibold">
+              {a.cliente?.nome}
+            </h4>
 
-              <div className="space-y-1">
+            <p className="text-gray-400 text-sm">
+              Barbeiro: {a.barbeiro?.nome}
+            </p>
 
-                <h4 className="text-lg font-semibold text-white">{a.cliente.nome}</h4>
+            <p className="text-gray-400 text-sm">
+              {formatDataHora(a.dataHora)}
+            </p>
 
-                <p className="text-gray-400 text-sm">Barbeiro: {a.barbeiro.nome}</p>
+            <div className="flex gap-3 mt-2">
 
-                <p className="text-gray-400 text-sm">
-                  {new Date(a.dataHora).toLocaleString('pt-BR')}
-                </p>
+              <span className="text-purple-400 font-bold">
+                R$ {a.valorTotal?.toFixed(2)}
+              </span>
 
-                <div className="flex items-center gap-3 mt-2">
+              <span className="text-xs px-2 py-1 rounded bg-gray-700 text-white">
+                {a.status}
+              </span>
 
-                  <span className={`px-3 py-1 rounded-xl text-xs font-bold ${
-                    a.status === 'AGENDADO'
-                      ? 'bg-green-700 text-white'
-                      : a.status === 'CANCELADO'
-                      ? 'bg-red-700 text-white'
-                      : 'bg-gray-700 text-white'
-                  }`}>
-                    {a.status}
-                  </span>
+            </div>
 
-                  <span className="text-purple-400 font-semibold">
-                    R$ {a.valorTotal.toFixed(2)}
-                  </span>
+            <div className="flex gap-3 mt-4">
 
-                </div>
+              <button
+                onClick={() => setAgendamentoParaEditar(a)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-xl"
+              >
+                Editar
+              </button>
 
-              </div>
-
-              <div className="flex gap-3 flex-wrap">
-
-                <button
-                  onClick={() => setAgendamentoParaEditar(a)}
-                  className="px-4 py-2 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white transition cursor-pointer"
-                >
-                  Editar
-                </button>
-
-                <button
-                  onClick={() => {
-                    setAgendamentoParaExcluir(a.id)
-                    setConfirmarDelete(true)
-                  }}
-                  className="px-4 py-2 rounded-2xl bg-red-600 hover:bg-red-700 text-white transition cursor-pointer"
-                >
-                  Excluir
-                </button>
-
-              </div>
+              <button
+                onClick={() => {
+                  setAgendamentoParaExcluir(a.id)
+                  setConfirmarDelete(true)
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl"
+              >
+                Excluir
+              </button>
 
             </div>
 
           </div>
-
         ))}
 
       </div>
 
-      {/* Paginação */}
-      <div className="flex items-center gap-3 mt-6">
+      {/* PAGINAÇÃO */}
+      <div className="flex gap-3 mt-6 items-center">
 
         <button
-          onClick={() => setPaginaAtual(p => p - 1)}
           disabled={paginaAtual === 1}
-          className="px-5 py-3 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => setPaginaAtual(p => p - 1)}
+          className="px-4 py-2 bg-gray-800 text-white rounded-xl"
         >
           Anterior
         </button>
 
-        <span className="text-gray-400 text-sm">
+        <span className="text-gray-400">
           Página {paginaAtual} de {totalPaginas || 1}
         </span>
 
         <button
+          disabled={paginaAtual === totalPaginas}
           onClick={() => setPaginaAtual(p => p + 1)}
-          disabled={paginaAtual === totalPaginas || totalPaginas === 0}
-          className="px-5 py-3 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-gray-800 text-white rounded-xl"
         >
           Próxima
         </button>
 
       </div>
 
-      {/* Modal criar */}
+      {/* MODAIS */}
       {modalAberto && (
         <CriarAgendamento
           onFechar={() => setModalAberto(false)}
@@ -288,7 +311,6 @@ function ListarAgendamentos() {
         />
       )}
 
-      {/* Modal editar */}
       {agendamentoParaEditar && (
         <CriarAgendamento
           agendamento={agendamentoParaEditar}
@@ -300,34 +322,27 @@ function ListarAgendamentos() {
         />
       )}
 
-      {/* Modal confirmar exclusão */}
       {confirmarDelete && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
 
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 p-6 rounded-2xl">
 
-          <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl p-6">
-
-            <h3 className="text-xl font-bold text-white mb-2">Excluir agendamento</h3>
-
-            <p className="text-gray-400 mb-6">
-              Tem certeza que deseja excluir este agendamento?
+            <p className="text-white mb-4">
+              Confirmar exclusão?
             </p>
 
             <div className="flex gap-3">
 
               <button
-                onClick={() => {
-                  setConfirmarDelete(false)
-                  setAgendamentoParaExcluir(null)
-                }}
-                className="flex-1 p-3 rounded-2xl bg-gray-800 text-white hover:bg-gray-700 transition cursor-pointer"
+                onClick={() => setConfirmarDelete(false)}
+                className="px-4 py-2 bg-gray-700 text-white rounded-xl"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={handleDelete}
-                className="flex-1 p-3 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition cursor-pointer"
+                className="px-4 py-2 bg-red-600 text-white rounded-xl"
               >
                 Excluir
               </button>
@@ -337,13 +352,10 @@ function ListarAgendamentos() {
           </div>
 
         </div>
-
       )}
 
     </div>
-
   )
-
 }
 
 export default ListarAgendamentos
