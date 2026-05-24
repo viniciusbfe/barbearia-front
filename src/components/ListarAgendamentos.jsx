@@ -158,7 +158,7 @@ function ListarAgendamentos() {
 
         <button
           onClick={() => setModalAberto(true)}
-          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-semibold hover:opacity-90 transition shadow-lg"
+          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-semibold hover:opacity-90 transition shadow-lg cursor-pointer"
         >
           + Novo Agendamento
         </button>
@@ -204,7 +204,7 @@ function ListarAgendamentos() {
           <div className="flex items-end">
             <button
               onClick={limparFiltros}
-              className="px-5 py-4 rounded-2xl bg-gray-800 text-white"
+              className="cursor-pointer px-5 py-4 rounded-2xl bg-gray-800 text-white"
             >
               Limpar filtros
             </button>
@@ -278,7 +278,7 @@ function ListarAgendamentos() {
         <button
           disabled={paginaAtual === 1}
           onClick={() => setPaginaAtual(p => p - 1)}
-          className="px-4 py-2 bg-gray-800 text-white rounded-xl"
+          className="cursor-pointer px-4 py-2 bg-gray-800 text-white rounded-xl"
         >
           Anterior
         </button>
@@ -290,7 +290,7 @@ function ListarAgendamentos() {
         <button
           disabled={paginaAtual === totalPaginas}
           onClick={() => setPaginaAtual(p => p + 1)}
-          className="px-4 py-2 bg-gray-800 text-white rounded-xl"
+          className="cursor-pointer px-4 py-2 bg-gray-800 text-white rounded-xl"
         >
           Próxima
         </button>
