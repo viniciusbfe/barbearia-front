@@ -8,7 +8,9 @@ function Login() {
 
   const navigate = useNavigate()
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault()
+
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -45,7 +47,6 @@ function Login() {
       <div className="w-full max-w-sm bg-gray-900/90 border border-gray-800 rounded-3xl p-8 shadow-2xl backdrop-blur">
 
         <div className="mb-8 text-center">
-
           <h1 className="text-4xl font-bold text-white mb-2">
             Barbearia
           </h1>
@@ -53,10 +54,10 @@ function Login() {
           <p className="text-gray-400 text-sm">
             Faça login para continuar
           </p>
-
         </div>
 
-        <div className="space-y-4">
+        {/* 🔥 AQUI ESTÁ A MUDANÇA */}
+        <form onSubmit={handleLogin} className="space-y-4">
 
           <input
             type="email"
@@ -75,13 +76,13 @@ function Login() {
           />
 
           <button
-            onClick={handleLogin}
+            type="submit"
             className="w-full mt-2 p-4 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold hover:opacity-90 transition cursor-pointer"
           >
             Entrar
           </button>
 
-        </div>
+        </form>
 
       </div>
 

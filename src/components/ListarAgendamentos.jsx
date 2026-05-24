@@ -246,7 +246,7 @@ function ListarAgendamentos() {
 
               <button
                 onClick={() => setAgendamentoParaEditar(a)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-xl"
+                className="px-4 py-2 bg-purple-600 cursor-pointer text-white rounded-xl"
               >
                 Editar
               </button>
@@ -256,7 +256,7 @@ function ListarAgendamentos() {
                   setAgendamentoParaExcluir(a.id)
                   setConfirmarDelete(true)
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl"
+                className="px-4 py-2 bg-red-600 cursor-pointer text-white rounded-xl"
               >
                 Excluir
               </button>
