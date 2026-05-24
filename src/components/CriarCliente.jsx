@@ -53,7 +53,15 @@ function CriarCliente() {
         type="text"
         placeholder="Telefone"
         value={telefone}
-        onChange={(e) => setTelefone(e.target.value)}
+        onChange={(e) => {
+          let valor = e.target.value.replace(/\D/g, '')
+          if (valor.length <= 11) {
+            valor = valor
+              .replace(/^(\d{2})(\d)/, '($1) $2')
+              .replace(/(\d{5})(\d)/, '$1-$2')
+          }
+          setTelefone(valor)
+        }}
         className="w-full p-3 mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
       />
 
