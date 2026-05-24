@@ -23,6 +23,9 @@ function ListarAgendamentos() {
 
   const itensPorPagina = 14
 
+  const [agendamentoParaEditar, setAgendamentoParaEditar] = useState(null)
+
+
   useEffect(() => {
 
     const handleResize = () =>
@@ -324,13 +327,12 @@ function ListarAgendamentos() {
 
                 <div className="flex items-center gap-3 mt-2">
 
-                  <span className={`px-3 py-1 rounded-xl text-xs font-bold ${
-                    a.status === 'AGENDADO'
-                      ? 'bg-green-700 text-white'
-                      : a.status === 'CANCELADO'
+                  <span className={`px-3 py-1 rounded-xl text-xs font-bold ${a.status === 'AGENDADO'
+                    ? 'bg-green-700 text-white'
+                    : a.status === 'CANCELADO'
                       ? 'bg-red-700 text-white'
                       : 'bg-gray-700 text-white'
-                  }`}>
+                    }`}>
                     {a.status}
                   </span>
 
@@ -345,6 +347,7 @@ function ListarAgendamentos() {
               <div className="flex gap-3 flex-wrap">
 
                 <button
+                  onClick={() => setAgendamentoParaEditar(a)} // 👈
                   className="px-4 py-2 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white transition cursor-pointer"
                 >
                   Editar
@@ -384,6 +387,17 @@ function ListarAgendamentos() {
           }
         />
 
+      )}
+
+      {agendamentoParaEditar && (
+        <CriarAgendamento
+          agendamento={agendamentoParaEditar}
+          onFechar={() => setAgendamentoParaEditar(null)}
+          onCriado={() => {
+            buscarAgendamentos()
+            setAgendamentoParaEditar(null)
+          }}
+        />
       )}
 
       {confirmarDelete && (

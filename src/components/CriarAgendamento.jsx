@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-
-import DatePicker, {
-  registerLocale
-} from 'react-datepicker'
-
+import DatePicker, { registerLocale } from 'react-datepicker'
 import { ptBR } from 'date-fns/locale'
-
 import 'react-datepicker/dist/react-datepicker.css'
 
 registerLocale('pt-BR', ptBR)
 
-function CriarAgendamento({
-  onFechar,
-  onCriado
-}) {
+function CriarAgendamento({ onFechar, onCriado, agendamento }) {
 
   const [clientes, setClientes] = useState([])
   const [barbeiros, setBarbeiros] = useState([])
@@ -28,195 +20,145 @@ function CriarAgendamento({
   const [data, setData] = useState(null)
   const [horario, setHorario] = useState('')
 
+  const isEdicao = !!agendamento // 👈
+
   useEffect(() => {
 
-    const token =
-      localStorage.getItem('token')
+    const token = localStorage.getItem('token')
 
-    fetch(
-      `${import.meta.env.VITE_API_URL}/clientes`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
+    fetch(`${import.meta.env.VITE_API_URL}/clientes`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setClientes(data))
 
-    fetch(
-      `${import.meta.env.VITE_API_URL}/barbeiros`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
+    fetch(`${import.meta.env.VITE_API_URL}/barbeiros`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setBarbeiros(data))
 
-    fetch(
-      `${import.meta.env.VITE_API_URL}/servicos`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
+    fetch(`${import.meta.env.VITE_API_URL}/servicos`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setServicos(data))
 
   }, [])
 
+  // 👇 Pré-preenche os campos quando for edição
+  useEffect(() => {
+
+    if (!agendamento) return
+
+    setClienteId(String(agendamento.cliente.id))
+    setBarbeiroId(String(agendamento.barbeiro.id))
+    setServicosSelecionados(
+      agendamento.servicos.map(s => s.id)
+    )
+    setData(new Date(agendamento.dataHora))
+    setHorario(
+      new Date(agendamento.dataHora)
+        .toTimeString()
+        .substring(0, 8) // "HH:mm:ss"
+    )
+
+    // Busca os dias que o barbeiro trabalha
+    const token = localStorage.getItem('token')
+
+    fetch(
+      `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${agendamento.barbeiro.id}/dias`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+      .then(res => res.json())
+      .then(dias => setDiasTrabalhados(dias))
+
+  }, [agendamento])
+
   const buscarSlots = async () => {
 
     if (!barbeiroId || !data) {
-
-      toast.warning(
-        'Selecione um barbeiro e uma data primeiro!'
-      )
-
+      toast.warning('Selecione um barbeiro e uma data primeiro!')
       return
-
     }
 
     if (servicosSelecionados.length === 0) {
-
-      toast.warning(
-        'Selecione pelo menos um serviço primeiro!'
-      )
-
+      toast.warning('Selecione pelo menos um serviço primeiro!')
       return
-
     }
 
-    const token =
-      localStorage.getItem('token')
-
-    const servicosParam =
-      servicosSelecionados.join(',')
-
-    const dataFormatada =
-      data.toISOString().split('T')[0]
+    const token = localStorage.getItem('token')
+    const servicosParam = servicosSelecionados.join(',')
+    const dataFormatada = data.toISOString().split('T')[0]
 
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${barbeiroId}?data=${dataFormatada}&servicoIds=${servicosParam}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     )
 
     if (response.ok) {
-
-      const dados =
-        await response.json()
-
+      const dados = await response.json()
       setSlots(dados)
-
     } else {
-
       setSlots([])
-
-      toast.error(
-        'Barbeiro não trabalha nesse dia!'
-      )
-
+      toast.error('Barbeiro não trabalha nesse dia!')
     }
 
   }
 
   const toggleServico = (id) => {
 
-    if (
-      servicosSelecionados.includes(id)
-    ) {
-
-      setServicosSelecionados(
-        servicosSelecionados.filter(
-          s => s !== id
-        )
-      )
-
+    if (servicosSelecionados.includes(id)) {
+      setServicosSelecionados(servicosSelecionados.filter(s => s !== id))
     } else {
-
-      setServicosSelecionados([
-        ...servicosSelecionados,
-        id
-      ])
-
+      setServicosSelecionados([...servicosSelecionados, id])
     }
 
   }
 
   const handleSubmit = async () => {
 
-    if (
-      !clienteId ||
-      !barbeiroId ||
-      !data ||
-      !horario ||
-      servicosSelecionados.length === 0
-    ) {
-
-      toast.warning(
-        'Preencha todos os campos!'
-      )
-
+    if (!clienteId || !barbeiroId || !data || !horario || servicosSelecionados.length === 0) {
+      toast.warning('Preencha todos os campos!')
       return
-
     }
 
-    const token =
-      localStorage.getItem('token')
+    const token = localStorage.getItem('token')
+    const dataFormatada = data.toISOString().split('T')[0]
+    const dataHora = `${dataFormatada}T${horario}`
 
-    const dataFormatada =
-      data.toISOString().split('T')[0]
+    // 👇 PUT se for edição, POST se for criação
+    const url = isEdicao
+      ? `${import.meta.env.VITE_API_URL}/agendamentos/${agendamento.id}`
+      : `${import.meta.env.VITE_API_URL}/agendamentos`
 
-    const dataHora =
-      `${dataFormatada}T${horario}`
+    const method = isEdicao ? 'PUT' : 'POST'
 
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/agendamentos`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type':
-            'application/json',
-          Authorization:
-            `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          clienteId: Number(clienteId),
-          barbeiroId: Number(barbeiroId),
-          dataHora,
-          servicoIds:
-            servicosSelecionados
-        })
-      }
-    )
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        clienteId: Number(clienteId),
+        barbeiroId: Number(barbeiroId),
+        dataHora,
+        servicoIds: servicosSelecionados
+      })
+    })
 
     if (response.ok) {
-
       toast.success(
-        'Agendamento criado com sucesso!'
+        isEdicao
+          ? 'Agendamento atualizado com sucesso!'
+          : 'Agendamento criado com sucesso!'
       )
-
       onCriado()
-
       onFechar()
-
     } else {
-
-      const erro =
-        await response.json()
-
-      toast.error(
-        erro.mensagem ||
-        'Erro ao criar agendamento'
-      )
-
+      const erro = await response.json()
+      toast.error(erro.mensagem || 'Erro ao salvar agendamento')
     }
 
   }
@@ -231,12 +173,15 @@ function CriarAgendamento({
 
           <div>
 
+            {/* 👇 Título dinâmico */}
             <h3 className="text-2xl font-bold text-white">
-              Novo Agendamento
+              {isEdicao ? 'Editar Agendamento' : 'Novo Agendamento'}
             </h3>
 
             <p className="text-gray-400 text-sm mt-1">
-              Crie um novo horário para cliente
+              {isEdicao
+                ? 'Altere os dados do agendamento'
+                : 'Crie um novo horário para cliente'}
             </p>
 
           </div>
@@ -253,169 +198,91 @@ function CriarAgendamento({
         <div className="p-6 space-y-6">
 
           <div>
-
-            <p className="text-sm text-gray-400 mb-2">
-              Cliente
-            </p>
-
+            <p className="text-sm text-gray-400 mb-2">Cliente</p>
             <select
               value={clienteId}
-              onChange={(e) =>
-                setClienteId(e.target.value)
-              }
+              onChange={(e) => setClienteId(e.target.value)}
               className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition cursor-pointer"
             >
-              <option value="">
-                Selecione um cliente
-              </option>
-
+              <option value="">Selecione um cliente</option>
               {clientes.map(c => (
-                <option
-                  key={c.id}
-                  value={c.id}
-                >
-                  {c.nome}
-                </option>
+                <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
-
             </select>
-
           </div>
 
           <div>
-
-            <p className="text-sm text-gray-400 mb-2">
-              Barbeiro
-            </p>
-
+            <p className="text-sm text-gray-400 mb-2">Barbeiro</p>
             <select
               value={barbeiroId}
               onChange={(e) => {
 
-                setBarbeiroId(
-                  e.target.value
-                )
-
+                setBarbeiroId(e.target.value)
                 setSlots([])
-
                 setHorario('')
-
                 setData(null)
 
                 if (e.target.value) {
-
-                  const token =
-                    localStorage.getItem('token')
-
+                  const token = localStorage.getItem('token')
                   fetch(
                     `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${e.target.value}/dias`,
-                    {
-                      headers: {
-                        Authorization:
-                          `Bearer ${token}`
-                      }
-                    }
+                    { headers: { Authorization: `Bearer ${token}` } }
                   )
                     .then(res => res.json())
-                    .then(dias =>
-                      setDiasTrabalhados(dias)
-                    )
-
+                    .then(dias => setDiasTrabalhados(dias))
                 }
 
               }}
               className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition cursor-pointer"
             >
-              <option value="">
-                Selecione um barbeiro
-              </option>
-
+              <option value="">Selecione um barbeiro</option>
               {barbeiros.map(b => (
-                <option
-                  key={b.id}
-                  value={b.id}
-                >
-                  {b.nome}
-                </option>
+                <option key={b.id} value={b.id}>{b.nome}</option>
               ))}
-
             </select>
-
           </div>
 
           <div>
-
-            <p className="text-sm text-gray-400 mb-3">
-              Serviços
-            </p>
-
+            <p className="text-sm text-gray-400 mb-3">Serviços</p>
             <div className="flex flex-wrap gap-3">
-
               {servicos.map(s => (
-
                 <button
                   key={s.id}
-                  onClick={() =>
-                    toggleServico(s.id)
-                  }
-                  className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${servicosSelecionados.includes(s.id)
+                  onClick={() => toggleServico(s.id)}
+                  className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${
+                    servicosSelecionados.includes(s.id)
                       ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-500 text-white shadow-lg'
                       : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                    }`}
+                  }`}
                 >
                   {s.nome}
                 </button>
-
               ))}
-
             </div>
-
           </div>
 
           <div>
-
-            <p className="text-sm text-gray-400 mb-2">
-              Data
-            </p>
-
+            <p className="text-sm text-gray-400 mb-2">Data</p>
             <div className="flex flex-col md:flex-row gap-3">
-
               <DatePicker
                 locale="pt-BR"
                 selected={data}
                 onChange={(date) => {
 
                   const diasSemana = [
-                    'DOMINGO',
-                    'SEGUNDA_FEIRA',
-                    'TERCA_FEIRA',
-                    'QUARTA_FEIRA',
-                    'QUINTA_FEIRA',
-                    'SEXTA_FEIRA',
-                    'SABADO'
+                    'DOMINGO', 'SEGUNDA_FEIRA', 'TERCA_FEIRA',
+                    'QUARTA_FEIRA', 'QUINTA_FEIRA', 'SEXTA_FEIRA', 'SABADO'
                   ]
 
-                  const diaSemana =
-                    diasSemana[date.getDay()]
+                  const diaSemana = diasSemana[date.getDay()]
 
-                  if (
-                    !diasTrabalhados.includes(
-                      diaSemana
-                    )
-                  ) {
-
-                    toast.error(
-                      'Barbeiro não trabalha nesse dia!'
-                    )
-
+                  if (!diasTrabalhados.includes(diaSemana)) {
+                    toast.error('Barbeiro não trabalha nesse dia!')
                     return
-
                   }
 
                   setData(date)
-
                   setSlots([])
-
                   setHorario('')
 
                 }}
@@ -425,70 +292,60 @@ function CriarAgendamento({
                 calendarClassName="custom-calendar"
                 popperPlacement="bottom-start"
                 showPopperArrow={false}
-                className="
-    flex-1 w-full p-4 rounded-2xl
-    bg-gray-800 border border-gray-700
-    text-white outline-none
-    focus:border-purple-500
-    transition
-  "
+                className="flex-1 w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition"
               />
-
               <button
                 onClick={buscarSlots}
                 className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-semibold hover:opacity-90 transition cursor-pointer"
               >
                 Ver horários
               </button>
-
             </div>
-
           </div>
 
           {slots.length > 0 && (
-
             <div>
-
-              <p className="text-sm text-gray-400 mb-3">
-                Horários disponíveis
-              </p>
-
+              <p className="text-sm text-gray-400 mb-3">Horários disponíveis</p>
               <div className="flex flex-wrap gap-3">
-
                 {slots.map(slot => (
-
                   <button
                     key={slot}
-                    onClick={() =>
-                      setHorario(slot)
-                    }
-                    className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${horario === slot
+                    onClick={() => setHorario(slot)}
+                    className={`px-4 py-2 rounded-2xl text-sm font-medium transition-all cursor-pointer border ${
+                      horario === slot
                         ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-500 text-white shadow-lg'
                         : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-                      }`}
+                    }`}
                   >
                     {slot.substring(0, 5)}
                   </button>
-
                 ))}
-
               </div>
-
             </div>
+          )}
 
+          {/* 👇 Mostra o horário atual na edição mesmo sem buscar slots */}
+          {isEdicao && horario && slots.length === 0 && (
+            <div>
+              <p className="text-sm text-gray-400 mb-3">Horário atual</p>
+              <span className="px-4 py-2 rounded-2xl text-sm font-medium bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-500 text-white shadow-lg border">
+                {horario.substring(0, 5)}
+              </span>
+              <p className="text-xs text-gray-500 mt-2">
+                Clique em "Ver horários" para escolher outro
+              </p>
+            </div>
           )}
 
         </div>
 
         <div className="p-6 border-t border-gray-800">
-
           <button
             onClick={handleSubmit}
             className="w-full p-4 rounded-2xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold hover:opacity-90 transition cursor-pointer shadow-lg"
           >
-            Agendar
+            {isEdicao ? 'Salvar alterações' : 'Agendar'} {/* 👈 */}
           </button>
-
         </div>
 
       </div>
