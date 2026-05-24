@@ -51,8 +51,8 @@ function CriarCliente() {
 
       <input
         type="text"
-        placeholder="Telefone"
-        value={telefone || '('}
+        placeholder="(XX) XXXXX-XXXX"
+        value={telefone}
         maxLength={15}
         onChange={(e) => {
           let valor = e.target.value.replace(/\D/g, '')
