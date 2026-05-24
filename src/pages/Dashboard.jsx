@@ -78,34 +78,93 @@ function Dashboard() {
     setPaginaAtiva(pagina)
     setMenuAberto(false)
   }
-
   const Sidebar = () => (
 
-    <div className="flex flex-col h-full p-6 bg-gray-950 border-r border-gray-800">
+    <div className="
+    flex flex-col h-full p-5
+    bg-black/40 backdrop-blur-xl
+    border-r border-white/10
+  ">
+
+      {/* Logo */}
 
       <div className="mb-8">
 
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
-          Barbearia
-        </h1>
+        <div className="flex items-center gap-3 mb-3">
+
+          <div className="
+          w-12 h-12 rounded-2xl
+          bg-gradient-to-br from-purple-600 to-fuchsia-600
+          flex items-center justify-center
+          shadow-lg shadow-purple-500/20
+        ">
+            <span className="text-white font-bold text-xl">
+              B
+            </span>
+          </div>
+
+          <div>
+
+            <h1 className="text-2xl font-bold text-white">
+              Barbearia
+            </h1>
+
+            <p className="text-xs text-gray-500">
+              Painel administrativo
+            </p>
+
+          </div>
+
+        </div>
 
         {usuario && (
-          <p className="text-gray-400 text-sm mt-2">
-            Olá, {usuario.nome}
-          </p>
+
+          <div className="
+          mt-4 p-3 rounded-2xl
+          bg-white/5 border border-white/5
+        ">
+
+            <p className="text-xs text-gray-500 mb-1">
+              Conectado como
+            </p>
+
+            <p className="text-sm text-white font-medium">
+              {usuario.nome}
+            </p>
+
+          </div>
+
         )}
 
       </div>
+
+      {/* Navegação */}
 
       <nav className="flex flex-col gap-2 flex-1">
 
         <button
           onClick={() => navegarPara('agendamentos')}
-          className={`text-left p-3 rounded-xl font-medium transition-all cursor-pointer ${
-            paginaAtiva === 'agendamentos'
-              ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg'
-              : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-          }`}
+          className={`
+          text-left p-4 rounded-2xl
+          font-medium transition-all duration-300
+          cursor-pointer border
+          ${paginaAtiva === 'agendamentos'
+              ? `
+                bg-gradient-to-r
+                from-purple-600/30
+                to-fuchsia-600/20
+                border-purple-500/30
+                text-white
+                shadow-lg shadow-purple-500/10
+              `
+              : `
+                border-transparent
+                text-gray-400
+                hover:bg-white/5
+                hover:text-white
+              `
+            }
+        `}
         >
           Agendamentos
         </button>
@@ -114,18 +173,39 @@ function Dashboard() {
           onClick={() =>
             setGerenciarAberto(!gerenciarAberto)
           }
-          className="text-left p-3 rounded-xl font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all flex justify-between items-center cursor-pointer"
+          className="
+          text-left p-4 rounded-2xl
+          font-medium text-gray-400
+          hover:bg-white/5
+          hover:text-white
+          transition-all duration-300
+          flex justify-between items-center
+          border border-transparent
+          hover:border-white/5
+          cursor-pointer
+        "
         >
-          Gerenciar
 
-          <span className="text-xs">
-            {gerenciarAberto ? '▲' : '▼'}
+          <span>
+            Gerenciar
           </span>
+
+          <span className={`
+          text-xs transition-transform duration-300
+          ${gerenciarAberto ? 'rotate-180' : ''}
+        `}>
+            ▼
+          </span>
+
         </button>
 
         {gerenciarAberto && (
 
-          <div className="flex flex-col gap-2 ml-2 mt-1">
+          <div className="
+          flex flex-col gap-2
+          ml-2 mt-1 pl-3
+          border-l border-white/10
+        ">
 
             {subMenuGerenciar.map(item => (
 
@@ -135,21 +215,41 @@ function Dashboard() {
                   onClick={() =>
                     toggleSubMenu(item.id)
                   }
-                  className="w-full text-left p-2 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-all flex justify-between items-center cursor-pointer"
+                  className="
+                  w-full text-left p-3 rounded-xl
+                  text-sm font-medium
+                  text-gray-400
+                  hover:bg-white/5
+                  hover:text-white
+                  transition-all duration-300
+                  flex justify-between items-center
+                  cursor-pointer
+                "
                 >
-                  {item.label}
 
-                  <span className="text-xs">
-                    {subMenuAberto === item.id
-                      ? '▲'
-                      : '▼'}
+                  <span>
+                    {item.label}
+                  </span>
+
+                  <span className={`
+                  text-[10px]
+                  transition-transform duration-300
+                  ${subMenuAberto === item.id
+                      ? 'rotate-180'
+                      : ''
+                    }
+                `}>
+                    ▼
                   </span>
 
                 </button>
 
                 {subMenuAberto === item.id && (
 
-                  <div className="flex flex-col gap-1 ml-3 mt-1">
+                  <div className="
+                  flex flex-col gap-1
+                  ml-2 mt-2
+                ">
 
                     <button
                       onClick={() =>
@@ -157,12 +257,24 @@ function Dashboard() {
                           `listar-${item.id}`
                         )
                       }
-                      className={`w-full text-left p-2 rounded-lg text-sm transition-all cursor-pointer ${
-                        paginaAtiva ===
-                        `listar-${item.id}`
-                          ? 'bg-purple-600 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                      }`}
+                      className={`
+                      w-full text-left p-3 rounded-xl
+                      text-sm transition-all duration-300
+                      cursor-pointer
+                      ${paginaAtiva ===
+                          `listar-${item.id}`
+                          ? `
+                            bg-purple-600/20
+                            border border-purple-500/20
+                            text-white
+                          `
+                          : `
+                            text-gray-500
+                            hover:bg-white/5
+                            hover:text-white
+                          `
+                        }
+                    `}
                     >
                       Listar {item.label}
                     </button>
@@ -173,14 +285,26 @@ function Dashboard() {
                           `criar-${item.id}`
                         )
                       }
-                      className={`w-full text-left p-2 rounded-lg text-sm transition-all cursor-pointer ${
-                        paginaAtiva ===
-                        `criar-${item.id}`
-                          ? 'bg-purple-600 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                      }`}
+                      className={`
+                      w-full text-left p-3 rounded-xl
+                      text-sm transition-all duration-300
+                      cursor-pointer
+                      ${paginaAtiva ===
+                          `criar-${item.id}`
+                          ? `
+                            bg-purple-600/20
+                            border border-purple-500/20
+                            text-white
+                          `
+                          : `
+                            text-gray-500
+                            hover:bg-white/5
+                            hover:text-white
+                          `
+                        }
+                    `}
                     >
-                      + Criar {item.label}
+                       Criar {item.label}
                     </button>
 
                   </div>
@@ -197,12 +321,24 @@ function Dashboard() {
 
       </nav>
 
+      {/* Botão sair */}
+
       <button
         onClick={() => {
           localStorage.removeItem('token')
           window.location.href = '/'
         }}
-        className="mt-6 p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-left font-medium cursor-pointer"
+        className="
+        mt-6 p-4 rounded-2xl
+        bg-red-500/10
+        border border-red-500/10
+        text-red-400 font-semibold
+        hover:bg-red-500
+        hover:text-white
+        hover:shadow-lg hover:shadow-red-500/20
+        transition-all duration-300
+        cursor-pointer
+      "
       >
         Sair
       </button>
@@ -241,11 +377,10 @@ function Dashboard() {
       {isMobile && (
 
         <div
-          className={`fixed top-0 left-0 h-full w-72 z-50 transform transition-transform duration-300 ${
-            menuAberto
-              ? 'translate-x-0'
-              : '-translate-x-full'
-          }`}
+          className={`fixed top-0 left-0 h-full w-72 z-50 transform transition-transform duration-300 ${menuAberto
+            ? 'translate-x-0'
+            : '-translate-x-full'
+            }`}
         >
           <Sidebar />
         </div>
@@ -280,11 +415,10 @@ function Dashboard() {
         )}
 
         <div
-          className={`flex-1 overflow-auto ${
-            isMobile
-              ? 'mt-20 p-4'
-              : 'p-8'
-          }`}
+          className={`flex-1 overflow-auto ${isMobile
+            ? 'mt-20 p-4'
+            : 'p-8'
+            }`}
         >
 
           <div className="w-full p-1">

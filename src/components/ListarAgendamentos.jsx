@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react'
 import CriarAgendamento from './CriarAgendamento.jsx'
 import { toast } from 'sonner'
+import DatePicker from 'react-datepicker'
+import { ptBR } from 'date-fns/locale'
 
 function ListarAgendamentos() {
 
   const [agendamentos, setAgendamentos] = useState([])
+  const [agendamentosFiltrados, setAgendamentosFiltrados] = useState([])
+
+  const [barbeiros, setBarbeiros] = useState([])
+  const [filtroBarbeiro, setFiltroBarbeiro] = useState('')
+  const [filtroData, setFiltroData] = useState(null)
+
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [modalAberto, setModalAberto] = useState(false)
 
   const [confirmarDelete, setConfirmarDelete] = useState(false)
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null)
-
-  const [editandoId, setEditandoId] = useState(null)
-  const [servicos, setServicos] = useState([])
-  const [editData, setEditData] = useState('')
-  const [editHorario, setEditHorario] = useState('')
-  const [editServicosSelecionados, setEditServicosSelecionados] = useState([])
-  const [editSlots, setEditSlots] = useState([])
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
@@ -54,7 +55,12 @@ function ListarAgendamentos() {
       }
     )
       .then(res => res.json())
-      .then(data => setAgendamentos(data))
+      .then(data => {
+
+        setAgendamentos(data)
+        setAgendamentosFiltrados(data)
+
+      })
 
   }
 
@@ -66,7 +72,7 @@ function ListarAgendamentos() {
       localStorage.getItem('token')
 
     fetch(
-      `${import.meta.env.VITE_API_URL}/servicos`,
+      `${import.meta.env.VITE_API_URL}/barbeiros`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -74,9 +80,58 @@ function ListarAgendamentos() {
       }
     )
       .then(res => res.json())
-      .then(data => setServicos(data))
+      .then(data => setBarbeiros(data))
 
   }, [])
+
+  useEffect(() => {
+
+    let filtrados = [...agendamentos]
+
+    if (filtroBarbeiro) {
+
+      filtrados = filtrados.filter(
+        a =>
+          a.barbeiro.id ===
+          Number(filtroBarbeiro)
+      )
+
+    }
+
+    if (filtroData) {
+
+      const dataFormatada =
+        filtroData
+          .toISOString()
+          .split('T')[0]
+
+      filtrados = filtrados.filter(
+        a =>
+          a.dataHora.startsWith(
+            dataFormatada
+          )
+      )
+
+    }
+
+    setAgendamentosFiltrados(
+      filtrados
+    )
+
+    setPaginaAtual(1)
+
+  }, [
+    filtroBarbeiro,
+    filtroData,
+    agendamentos
+  ])
+
+  const limparFiltros = () => {
+
+    setFiltroBarbeiro('')
+    setFiltroData(null)
+
+  }
 
   const handleDelete = async () => {
 
@@ -119,157 +174,8 @@ function ListarAgendamentos() {
 
   }
 
-  const abrirEdicao = (agendamento) => {
-
-    setEditandoId(agendamento.id)
-
-    setEditData('')
-
-    setEditHorario('')
-
-    setEditSlots([])
-
-    setEditServicosSelecionados(
-      agendamento.servicos.map(s => s.id)
-    )
-
-  }
-
-  const buscarSlotsEdicao = async (
-    barbeiroId,
-    data
-  ) => {
-
-    if (!barbeiroId || !data)
-      return
-
-    const token =
-      localStorage.getItem('token')
-
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/disponibilidades/barbeiro/${barbeiroId}?data=${data}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-
-    if (response.ok) {
-
-      setEditSlots(
-        await response.json()
-      )
-
-    } else {
-
-      setEditSlots([])
-
-      toast.error(
-        'Barbeiro não trabalha nesse dia!'
-      )
-
-    }
-
-  }
-
-  const toggleEditServico = (id) => {
-
-    if (
-      editServicosSelecionados.includes(id)
-    ) {
-
-      setEditServicosSelecionados(
-        editServicosSelecionados.filter(
-          s => s !== id
-        )
-      )
-
-    } else {
-
-      setEditServicosSelecionados([
-        ...editServicosSelecionados,
-        id
-      ])
-
-    }
-
-  }
-
-  const salvarEdicao = async (
-    agendamento
-  ) => {
-
-    const token =
-      localStorage.getItem('token')
-
-    const body = {}
-
-    if (
-      editServicosSelecionados.length > 0
-    ) {
-      body.servicoIds =
-        editServicosSelecionados
-    }
-
-    if (editData && editHorario) {
-
-      body.dataHora =
-        `${editData}T${editHorario}`
-
-    } else if (
-      editData &&
-      !editHorario
-    ) {
-
-      toast.warning(
-        'Selecione um horário!'
-      )
-
-      return
-
-    }
-
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/agendamentos/${agendamento.id}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type':
-            'application/json',
-          Authorization:
-            `Bearer ${token}`
-        },
-        body: JSON.stringify(body)
-      }
-    )
-
-    if (response.ok) {
-
-      buscarAgendamentos()
-
-      setEditandoId(null)
-
-      toast.success(
-        'Agendamento atualizado!'
-      )
-
-    } else {
-
-      const erro =
-        await response.json()
-
-      toast.error(
-        erro.mensagem ||
-        'Erro ao editar!'
-      )
-
-    }
-
-  }
-
   const totalPaginas = Math.ceil(
-    agendamentos.length /
+    agendamentosFiltrados.length /
     itensPorPagina
   )
 
@@ -278,7 +184,7 @@ function ListarAgendamentos() {
     itensPorPagina
 
   const itensPagina =
-    agendamentos.slice(
+    agendamentosFiltrados.slice(
       inicio,
       inicio + itensPorPagina
     )
@@ -312,6 +218,84 @@ function ListarAgendamentos() {
 
       </div>
 
+      {/* filtros */}
+
+      <div className="bg-gray-900 border border-gray-800 rounded-3xl p-5 mb-6 shadow-xl">
+
+        <div className="flex flex-col lg:flex-row gap-4">
+
+          <div className="flex-1">
+
+            <p className="text-sm text-gray-400 mb-2">
+              Filtrar por barbeiro
+            </p>
+
+            <select
+              value={filtroBarbeiro}
+              onChange={(e) =>
+                setFiltroBarbeiro(
+                  e.target.value
+                )
+              }
+              className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition cursor-pointer"
+            >
+
+              <option value="">
+                Todos os barbeiros
+              </option>
+
+              {barbeiros.map(b => (
+
+                <option
+                  key={b.id}
+                  value={b.id}
+                >
+                  {b.nome}
+                </option>
+
+              ))}
+
+            </select>
+
+          </div>
+
+          <div className="flex-1">
+
+            <p className="text-sm text-gray-400 mb-2">
+              Filtrar por data
+            </p>
+
+            <DatePicker
+              selected={filtroData}
+              onChange={(date) =>
+                setFiltroData(date)
+              }
+              dateFormat="dd/MM/yyyy"
+              locale={ptBR}
+              placeholderText="Selecione uma data"
+              calendarClassName="custom-calendar"
+              popperPlacement="bottom-start"
+              fixedHeight
+              className="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white outline-none focus:border-purple-500 transition"
+            />
+
+          </div>
+
+          <div className="flex items-end">
+
+            <button
+              onClick={limparFiltros}
+              className="w-full lg:w-auto px-5 py-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-white transition cursor-pointer"
+            >
+              Limpar filtros
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
       <div className="space-y-4">
 
         {itensPagina.map(a => (
@@ -334,7 +318,8 @@ function ListarAgendamentos() {
                 </p>
 
                 <p className="text-gray-400 text-sm">
-                  {a.dataHora}
+                  {new Date(a.dataHora)
+                    .toLocaleString('pt-BR')}
                 </p>
 
                 <div className="flex items-center gap-3 mt-2">
@@ -360,9 +345,6 @@ function ListarAgendamentos() {
               <div className="flex gap-3 flex-wrap">
 
                 <button
-                  onClick={() =>
-                    abrirEdicao(a)
-                  }
                   className="px-4 py-2 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white transition cursor-pointer"
                 >
                   Editar
@@ -370,8 +352,11 @@ function ListarAgendamentos() {
 
                 <button
                   onClick={() => {
+
                     setAgendamentoParaExcluir(a.id)
+
                     setConfirmarDelete(true)
+
                   }}
                   className="px-4 py-2 rounded-2xl bg-red-600 hover:bg-red-700 text-white transition cursor-pointer"
                 >
@@ -388,8 +373,6 @@ function ListarAgendamentos() {
 
       </div>
 
-      {/* Modal criar */}
-
       {modalAberto && (
 
         <CriarAgendamento
@@ -402,8 +385,6 @@ function ListarAgendamentos() {
         />
 
       )}
-
-      {/* Modal excluir */}
 
       {confirmarDelete && (
 
