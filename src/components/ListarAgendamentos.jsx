@@ -38,13 +38,6 @@ function ListarAgendamentos() {
     return `${dia}/${mes}/${ano} às ${hora}:${min}`
   }
 
-  const formatDataHora = (str) => {
-    const date = parseDataHoraBR(str)
-    if (!date) return 'Data inválida'
-
-    return date.toLocaleString('pt-BR')
-  }
-
   // =========================
   // BUSCAR AGENDAMENTOS
   // =========================
