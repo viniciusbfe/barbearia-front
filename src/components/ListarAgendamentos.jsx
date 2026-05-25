@@ -231,6 +231,10 @@ function ListarAgendamentos() {
             </p>
 
             <p className="text-gray-400 text-sm">
+              {a.servicos.map(s => s.nome).join(', ')}
+            </p>
+
+            <p className="text-gray-400 text-sm">
               {formatDataHora(a.dataHora)}
             </p>
 
